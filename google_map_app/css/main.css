@@ -1,0 +1,15 @@
+/* Optional: Makes the sample page fill the window. */
+html,
+body,
+.map-app-container {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Always set the map height explicitly to define the size of the div
+           * element that contains the map. */
+#map {
+  min-height: 400px;
+  height: 100%;
+}

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+    <!-- BEGIN JS scripts -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+
+    <script src="js/main_app.js"></script>
+    <script src="js/google_map_lib.js"></script>
+    <script src="js/restuarant_order_handler.js"></script>
+    <script src="js/panel_controls.js"></script>
+    <!-- END JS scripts -->
+
+    <!-- BEGIN CSS scripts -->
+    <link rel="stylesheet" type="text/css" href="css/main.css" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <!-- END CSS scripts -->
+  </head>
+  <title>Google API Exam</title>
+  <body>
+    <div class="container-fluid">
+      <div class="row mt-4">
+        <!-- BEGIN left panel -->
+        <div class="col-md-4">
+            <table class="table table-bordered table-striped m-4">
+                <thead>
+                  <tr>
+                    <td colspan="2" class="font-weight-bold">Cebu Restaurants Map Information</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                      <th class="text-nowrap" scope="row">Total Revenue</th>
+                      <td id="stat_total_revenue">0.00</td>
+                  </tr>
+                  <tr>
+                      <th class="text-nowrap" scope="row">Total Number of Restaurants</th>
+                      <td id="stat_total_restaurants">0.00</td>
+                  </tr>
+                  <tr>
+                    <th class="text-nowrap" scope="row">Top Seller</th>
+                    <td id="stat_top_seller">n/a</td>
+                  </tr>
+                  <tr>
+                      <th class="text-nowrap" scope="row">Top Seller Revenue</th>
+                      <td id="stat_top_seller_revenue">0.00</td>
+                  </tr>
+                </tbody>
+              </table>
+        </div>
+        <!-- END left panel -->
+
+        <!-- BEGIN right panel -->
+        <div class="col-md-8">
+          <!-- BEGIN Filter section -->
+          <div class="row">
+            <div class="col-md-4">
+              <form>
+                <div class="form-group">
+                  <label for="frmSelFoodCategory">Select Category</label>
+                  <select
+                    class="form-control"
+                    name="frm-sel-food-category"
+                    id="frmSelFoodCategory""
+                  >
+                    <option value="0">-- Select All Category --</option>
+                    <option value="1">Filipino Food</option>
+                    <option value="2">Mediterranean Food</option>
+                    <option value="3">American Food</option>
+                    <option value="4">Japanese Food</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+            <div class="col-md-8">
+              <button class="btn btn-primary" id="btnRenderRectangle">Draw Rectangle</button>
+              <button class="btn btn-danger" id="btnRemoveRectangle">Remove Rectangle</button>
+            </div>
+          </div>
+          <!-- END Filter section -->
+          <!-- BEGIN map section -->
+          <div class="row">
+            <div class="col-md-12">
+              <div id="map"></div>
+            </div>
+          </div>
+          <!-- END map section -->
+        </div>
+        <!-- END right panel -->
+      </div>
+    </div>
+
+
+
+    <!-- BEGIN modal -->
+    <!-- Modal -->
+    <div class="modal fade" id="orderModal" role="dialog">
+        <div class="modal-dialog">
+          <!-- Modal content-->
+          <div class="modal-content">
+            <div class="modal-header">
+              <i class="icon-large icon-map-marker"></i>
+              <h2 id="orderRestaurant">Restaurant</h2>
+              <button type="button" class="close" data-dismiss="modal">
+                &times;
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="alert" id="orderAlert">this is the alert</div>
+              <form>
+                <div class="form-group row">
+                    <label for="orderProduct" class="col-sm-2 col-form-label font-weight-bold">Product</label>
+                    <div class="col-sm-10">
+                      <input type="text" id="orderProduct" readonly class="form-control-plaintext">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="orderCategory" class="col-sm-2 col-form-label font-weight-bold">Category</label>
+                    <div class="col-sm-10">
+                      <input type="text" id="orderCategory" readonly class="form-control-plaintext">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="orderPrice" class="col-sm-2 col-form-label font-weight-bold">Price</label>
+                    <div class="col-sm-10">
+                        <!-- <span>&#8369;</span> -->
+                        <input type="text" id="orderPrice" readonly class="form-control-plaintext">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="orderQuantity" class="col-sm-2 col-form-label font-weight-bold">Quantity</label>
+                    <div class="col-sm-5">
+                      <input type="text" id="orderQuantity" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-sm-12">
+                      <button
+                      type="submit"
+                      class="btn btn-default btn-success btn-block"
+                      id="orderBtnSubmit"
+                      >
+                      <span class="glyphicon glyphicon-off"></span> Visit and
+                      Place Order
+                    </button>
+                  </div>
+                </div>
+              
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END modal -->
+  
+
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBkmsHwd8Z0bdIDg1Q41qBS9hE1tl3kNek&callback=initializeCustomLib"
+    ></script>
+  </body>
+</html>

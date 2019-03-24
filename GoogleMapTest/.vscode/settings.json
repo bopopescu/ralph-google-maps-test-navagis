@@ -1,0 +1,4 @@
+{
+    "python.pythonPath": "dev-env-alt/bin/python",
+    "python.formatting.provider": "black"
+}
