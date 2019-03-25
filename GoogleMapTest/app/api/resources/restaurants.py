@@ -7,8 +7,6 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from sqlalchemy.dialects import mysql
 
-# from sqlalchemy.func import sum
-
 
 class Restaurants(Resource):
     def get(self, category_id=None):
@@ -17,26 +15,13 @@ class Restaurants(Resource):
             restaurants_list = []
 
             if category_id is not None and category_id > 0:
-
-                restaurant_id_list = []
-
-                db_restaurant_list_obj = (
-                    db.session.query(Restaurant)
-                    .join(RestaurantCategory)
-                    .filter(RestaurantCategory.id == category_id)
-                ).all()
-
-                for restaurant in db_restaurant_list_obj:
-                    restaurant_id_list.append(restaurant.id)
-
                 db_query_obj = (
                     db.session.query(
                         Restaurant,
                         db.func.count(UserOrder.restaurant_id).label("total_visit"),
                     )
-                    .join(RestaurantCategory)
                     .outerjoin(UserOrder)
-                    .filter(UserOrder.restaurant_id.in_(restaurant_id_list))
+                    .join(RestaurantCategory)
                     .group_by(Restaurant.id)
                 )
             else:
@@ -50,7 +35,7 @@ class Restaurants(Resource):
                     .group_by(Restaurant.id)
                 )
 
-            # checkl SQL output
+            # check SQL output
             query_string_test = str(
                 db_query_obj.statement.compile(dialect=mysql.dialect())
             )
