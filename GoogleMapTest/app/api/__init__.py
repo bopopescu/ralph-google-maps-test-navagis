@@ -12,7 +12,7 @@ api_blueprint = Blueprint("api", __name__)
 api = Api(api_blueprint)
 
 # Restaurants endpoint
-api.add_resource(Restaurants, "/restaurants", "/restaurants/<int:category_id>")
+api.add_resource(Restaurants, "/restaurants", "/restaurants/<int:param_id>")
 
 # Restaurant form endpoint
 api.add_resource(RestaurantForm, "/restaurant_form/<int:restaurant_id>")

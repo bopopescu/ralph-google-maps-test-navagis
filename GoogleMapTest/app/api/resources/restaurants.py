@@ -3,18 +3,19 @@
 import json
 
 from flask import jsonify, request
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 from app.models import db, Restaurant, UserOrder, RestaurantCategory, RestaurantMenu
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.dialects import mysql
-from schema import Schema, And, Use
+from schema import Schema
 
 
 class Restaurants(Resource):
-    def get(self, category_id=None):
+    def get(self, param_id=None):
 
         try:
             restaurants_list = []
+            category_id = param_id
 
             if category_id is not None and category_id > 0:
                 db_query_obj = (
@@ -72,6 +73,7 @@ class Restaurants(Resource):
         return jsonify({"status": status, "message": message, "result": result})
 
     def post(self):
+
         validation_schema = Schema(
             {
                 "restaurant": {
@@ -126,3 +128,31 @@ class Restaurants(Resource):
 
         return jsonify({"status": status, "message": message, "result": result})
 
+    def delete(self, param_id):
+
+        restaurant_id = param_id
+
+        try:
+
+            # Delete from user_orders table
+            UserOrder.query.filter(UserOrder.restaurant_id == restaurant_id).delete()
+
+            # Delete from restaurant_menu table
+            RestaurantMenu.query.filter(RestaurantMenu.restaurant_id == restaurant_id).delete()
+
+            # Delete from restaurant table
+            Restaurant.query.filter(Restaurant.id == restaurant_id).delete()
+
+            db.session.commit()
+
+            status = 200
+            message = "success"
+            result = "Restaurant details deleted"
+
+        except Exception as e:
+
+            status = 400
+            message = "error"
+            result = str(e)
+
+        return jsonify({"status": status, "message": message, "result": result})
