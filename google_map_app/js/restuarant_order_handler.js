@@ -9,7 +9,30 @@ class RestaurantOrderHandler extends MainApp {
   constructor() {
     super();
     this.orderAlerttObj = $("#orderAlert");
+    this.objFormElem = $("#form-modal-order");
     this.orderAlerttObj.hide();
+
+    this.initializeFormValidators();
+  }
+
+  /**
+   * Set validators for the form fields
+   */
+  initializeFormValidators() {
+    this.objFormElem.validate({
+      rules: {
+        orderPrice: {
+          required: true,
+          number: true
+        }
+      },
+      messages: {
+        orderPrice: {
+          required: "Restaurant menu price is required",
+          number: "Restaurant menu price be numeric"
+        }
+      }
+    });
   }
 
   /**
@@ -26,6 +49,10 @@ class RestaurantOrderHandler extends MainApp {
         this.orderAlerttObj.text("Order has been successfuly made.");
         this.orderAlerttObj.show();
         this.populateStats();
+        if (this.obj_google_map) {
+          var filterVal = PanelControls.getFilterValue();
+          this.obj_google_map.loadMapData(filterVal);
+        }
       })
       .catch(error => {
         console.log("test");
@@ -41,9 +68,12 @@ class RestaurantOrderHandler extends MainApp {
    * This method is used to initialize call for diplaying the modal interface
    * so that it will allow the users to place orders
    * @param {Int} restaurant_id
+   * @param {Object} obj_google_map
    */
-  initializeOrderModal(restaurant_id) {
+  initializeOrderModal(restaurant_id, obj_google_map) {
     let orderForm = this.restEndpoint + "restaurant_form/" + restaurant_id;
+    this.obj_google_map = obj_google_map;
+
     axios.get(orderForm).then(response => {
       let obj_response_data = response.data.result;
 
@@ -72,25 +102,16 @@ class RestaurantOrderHandler extends MainApp {
       orderSubmitBtnObj.bind("click", event => {
         var order_qty = parseInt(orderQuantityObj.val());
 
-        if (order_qty < 1 || isNaN(order_qty)) {
-          this.orderAlerttObj.removeClass();
-          this.orderAlerttObj.addClass("alert alert-danger");
-          this.orderAlerttObj.text(
-            "Order quantity must be a number and more than zero"
-          );
-          this.orderAlerttObj.show();
-          return false;
+        if (this.objFormElem.valid()) {
+          var post_data = {
+            restaurant_id: obj_response_data.restaurant.id,
+            menu_id: obj_response_data.menu.id,
+            menu_last_price: obj_response_data.menu.price.toFixed(2),
+            total_quantity: order_qty
+          };
+          this.submitOrderModalContents(post_data);
+          orderQuantityObj.val(0);
         }
-
-        var post_data = {
-          restaurant_id: obj_response_data.restaurant.id,
-          menu_id: obj_response_data.menu.id,
-          menu_last_price: obj_response_data.menu.price.toFixed(2),
-          total_quantity: order_qty
-        };
-        this.submitOrderModalContents(post_data);
-        orderQuantityObj.val(0);
-
         event.preventDefault();
         return false;
       });

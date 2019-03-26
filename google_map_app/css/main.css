@@ -1,15 +1,47 @@
 /* Optional: Makes the sample page fill the window. */
-html,
+/* html,
 body,
 .map-app-container {
   height: 100%;
-  margin: 0;
-  padding: 0;
-}
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+} */
 
 /* Always set the map height explicitly to define the size of the div
            * element that contains the map. */
 #map {
-  min-height: 400px;
   height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+#control-panel-container {
+  position: relative;
+  top: 10px;
+  left: 30%;
+  z-index: 99;
+}
+
+#map-info-container {
+  width: 20%;
+  position: absolute;
+  left: 1%;
+  bottom: 10%;
+  z-index: 99;
+}
+
+.map-info-table-container {
+  position: relative;
+  width: 100%;
+  background-color: #ffffff;
+}
+
+#table-map-info {
+  background-color: #ffffff;
 }

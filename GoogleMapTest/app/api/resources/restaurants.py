@@ -25,6 +25,7 @@ class Restaurants(Resource):
                     )
                     .outerjoin(UserOrder)
                     .join(RestaurantCategory)
+                    .filter(RestaurantCategory.id == category_id)
                     .group_by(Restaurant.id)
                 )
             else:
@@ -33,8 +34,8 @@ class Restaurants(Resource):
                         Restaurant,
                         db.func.count(UserOrder.restaurant_id).label("total_visit"),
                     )
+                    .outerjoin(UserOrder)
                     .join(RestaurantCategory)
-                    .join(UserOrder)
                     .group_by(Restaurant.id)
                 )
 
@@ -73,7 +74,7 @@ class Restaurants(Resource):
         return jsonify({"status": status, "message": message, "result": result})
 
     def post(self):
-
+        
         validation_schema = Schema(
             {
                 "restaurant": {

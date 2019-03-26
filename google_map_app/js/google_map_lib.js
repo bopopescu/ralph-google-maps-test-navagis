@@ -3,13 +3,17 @@
  * @implements MainApp
  */
 class GoogleMapLib extends MainApp {
-  constructor(objRestaurantOrderHandler = null) {
+  constructor(
+    objRestaurantOrderHandler = null,
+    objRestaurantEditHandler = null
+  ) {
     super();
     // google map additional services
     this.directionsService = new google.maps.DirectionsService();
     this.directionsDisplay = new google.maps.DirectionsRenderer();
 
     this.objRestaurantOrderHandler = objRestaurantOrderHandler;
+    this.objRestaurantEditHandler = objRestaurantEditHandler;
 
     // Cebu City hall default location
     this.cebuDefaultPos = {
@@ -35,16 +39,17 @@ class GoogleMapLib extends MainApp {
     this.rectangle = null;
 
     this.map.addListener("click", event => {
-      if (this.rectangle) {
-        this.rectangle.setMap(null);
-        this.rectangle = null;
-        this.showAllMarkers();
-      } else {
-        this.renderRectangle({
-          lat: event.latLng.lat(),
-          lng: event.latLng.lng()
-        });
-      }
+      $("#restaurantModal").modal();
+
+      var obj_coordinates = {
+        lat: event.latLng.lat(),
+        lng: event.latLng.lng()
+      };
+
+      this.objRestaurantEditHandler.initializeRestaurantEditModal(
+        obj_coordinates,
+        this
+      );
     });
 
     this.loadMapData();
@@ -257,6 +262,7 @@ class GoogleMapLib extends MainApp {
         lat: markerData.pos.lat,
         lng: markerData.pos.lng
       });
+      this.activeWindow.close();
     });
 
     footerElemContainer.appendChild(btnGetDirections);
@@ -264,12 +270,16 @@ class GoogleMapLib extends MainApp {
     // Create visit and order button for info window
     var visitAndOrder = document.createElement("button");
     visitAndOrder.textContent = "Visit and Order";
-    visitAndOrder.setAttribute("class", "btn btn-warning btn-sm");
+    visitAndOrder.setAttribute("class", "btn btn-warning btn-sm mr-3");
 
     // Initialize modal load
     if (this.objRestaurantOrderHandler) {
       visitAndOrder.addEventListener("click", () => {
-        this.objRestaurantOrderHandler.initializeOrderModal(markerData.id);
+        this.objRestaurantOrderHandler.initializeOrderModal(
+          markerData.id,
+          this
+        );
+        this.activeWindow.close();
       });
     } else {
       console.log(
@@ -278,6 +288,17 @@ class GoogleMapLib extends MainApp {
     }
     footerElemContainer.appendChild(visitAndOrder);
     infoDialog.append(this.wrapDivInfoContainer(footerElemContainer));
+
+    // Create delete button for info window
+    var btnDeleteRestaurant = document.createElement("button");
+    btnDeleteRestaurant.textContent = "Delete";
+    btnDeleteRestaurant.setAttribute("class", "btn btn-danger btn-sm mr-3");
+
+    btnDeleteRestaurant.addEventListener("click", () => {
+      this.objRestaurantEditHandler.delete(markerData.id, this);
+    });
+
+    footerElemContainer.appendChild(btnDeleteRestaurant);
 
     // set the dialog contents to info window
     infoWindow.setContent(infoDialog);
@@ -374,9 +395,16 @@ class GoogleMapLib extends MainApp {
   }
 }
 
+/**
+ * This method is called when initalizing the google map
+ */
 function initializeCustomLib() {
   var objRestaurantOrderHandler = new RestaurantOrderHandler();
-  var objGoogleMapLib = new GoogleMapLib(objRestaurantOrderHandler);
+  var objRestaurantEditHandler = new RestaurantEditHandler();
+  var objGoogleMapLib = new GoogleMapLib(
+    objRestaurantOrderHandler,
+    objRestaurantEditHandler
+  );
   var objPanelControls = new PanelControls(objGoogleMapLib);
   objPanelControls.initializeDrawRectangleButton();
 }

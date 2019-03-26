@@ -36,4 +36,8 @@ class PanelControls extends MainApp {
       this.objGoogleMapLib.removeRectangle();
     });
   }
+
+  static getFilterValue() {
+    return $("#frmSelFoodCategory option:selected").val();
+  }
 }
