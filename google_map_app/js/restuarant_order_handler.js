@@ -21,15 +21,15 @@ class RestaurantOrderHandler extends MainApp {
   initializeFormValidators() {
     this.objFormElem.validate({
       rules: {
-        orderPrice: {
+        orderQuantity: {
           required: true,
-          number: true
+          digits: true
         }
       },
       messages: {
-        orderPrice: {
-          required: "Restaurant menu price is required",
-          number: "Restaurant menu price be numeric"
+        orderQuantity: {
+          required: "Quantity is required",
+          digits: "Quantity must be a whole number"
         }
       }
     });
@@ -55,7 +55,6 @@ class RestaurantOrderHandler extends MainApp {
         }
       })
       .catch(error => {
-        console.log("test");
         this.orderAlerttObj.removeClass();
         this.orderAlerttObj.addClass("alert alert-danger");
         this.orderAlerttObj.text("Unable to place order.");
