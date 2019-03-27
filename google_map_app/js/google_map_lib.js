@@ -16,10 +16,22 @@ class GoogleMapLib extends MainApp {
     this.objRestaurantEditHandler = objRestaurantEditHandler;
 
     // Cebu City hall default location
+    // this.cebuDefaultPos = {
+    //   lat: 10.292876,
+    //   lng: 123.8994493
+    // };
     this.cebuDefaultPos = {
-      lat: 10.292876,
-      lng: 123.8994493
+      lat: 10.318385,
+      lng: 123.787827
     };
+
+    this.markers = [];
+
+    // Cebu reference LatLng object
+    this.cebuCityLtLng = new google.maps.LatLng(
+      this.cebuDefaultPos.lat,
+      this.cebuDefaultPos.lng
+    );
 
     // Create map object
     this._mapObj = new google.maps.Map(document.getElementById("map"), {
@@ -30,6 +42,20 @@ class GoogleMapLib extends MainApp {
       zoom: 10
     });
 
+    this.placesService = new google.maps.places.PlacesService(this._mapObj);
+    // var searchRequest = {
+    //   query: "restaurant",
+    //   fields: ["name"],
+    //   locationBias: {
+    //     radius: 10000,
+    //     center: {
+    //       lat: 10.3790718,
+    //       lng: 123.7062055
+    //     }
+    //   }
+    // };
+
+    /*
     this.currentPos = this.getCurrentPos();
     this.activeWindow = null;
 
@@ -51,6 +77,7 @@ class GoogleMapLib extends MainApp {
         this
       );
     });
+    */
 
     this.loadMapData();
   }
@@ -217,92 +244,74 @@ class GoogleMapLib extends MainApp {
    * @param {*} markerData
    * @return {!Object} InfoWindow
    */
-  createInfoWindow(markerData) {
-    // console.log(markerData);
+  createInfoWindow(markerData, category = "n/a") {
+    console.log(markerData);
+
+    var requestDetails = {
+      placeId: markerData.place_id,
+      fields: ["name", "formatted_address", "types"]
+    };
 
     var infoWindow = new google.maps.InfoWindow();
 
-    var infoDialog = document.createElement("div");
-    infoDialog.className = "row";
+    this.placesService.getDetails(requestDetails, response => {
+      var infoDialog = document.createElement("div");
+      infoDialog.className = "row";
 
-    // create name elem and append
-    var mapLabel = document.createElement("h3");
-    mapLabel.textContent = markerData.name;
-    infoDialog.append(this.wrapDivInfoContainer(mapLabel));
+      // create name elem and append
+      var mapLabel = document.createElement("h3");
+      mapLabel.textContent = response.name;
+      infoDialog.append(this.wrapDivInfoContainer(mapLabel));
 
-    // create address elem and append
-    var addressElem = document.createElement("p");
-    addressElem.className = "mt-4";
-    addressElem.textContent = markerData.address;
-    infoDialog.append(this.wrapDivInfoContainer(addressElem));
+      // create address elem and append
+      var addressElem = document.createElement("p");
+      addressElem.className = "mt-4";
+      addressElem.textContent = response.formatted_address;
+      infoDialog.append(this.wrapDivInfoContainer(addressElem));
 
-    // create category name elem and append
-    var categoryNameElem = document.createElement("span");
-    addressElem.className = "mt-4";
-    categoryNameElem.textContent = "Category:  " + markerData.category.name;
-    infoDialog.append(this.wrapDivInfoContainer(categoryNameElem));
+      // create category name elem and append
+      var categoryNameElem = document.createElement("span");
+      addressElem.className = "mt-4";
+      categoryNameElem.textContent = "Category:  " + category;
+      infoDialog.append(this.wrapDivInfoContainer(categoryNameElem));
 
-    // create total visit elem and append
-    var totalVisitElem = document.createElement("div");
-    totalVisitElem.className = "mt-4 font-weight-bold";
-    totalVisitElem.textContent = "Total Visit: " + markerData.total_visit;
-    infoDialog.append(this.wrapDivInfoContainer(totalVisitElem));
+      // create rating elem elem and append
+      var userRating = document.createElement("div");
+      userRating.className = "mt-4 font-weight-bold";
+      userRating.textContent = "Rating: " + markerData.rating;
+      infoDialog.append(this.wrapDivInfoContainer(userRating));
 
-    // create control footer
-    var footerElemContainer = document.createElement("div");
-    footerElemContainer.className = "mt-3";
+      // create total visit elem and append
+      var totalVisitElem = document.createElement("div");
+      totalVisitElem.className = "mt-4 font-weight-bold";
+      totalVisitElem.textContent =
+        "Total Visit: " + markerData.user_ratings_total;
+      infoDialog.append(this.wrapDivInfoContainer(totalVisitElem));
 
-    // Create get directions button for info window
-    var btnGetDirections = document.createElement("button");
-    btnGetDirections.textContent = "Get Directions";
-    btnGetDirections.setAttribute("class", "btn btn-primary btn-sm mr-3");
+      // create control footer
+      var footerElemContainer = document.createElement("div");
+      footerElemContainer.className = "mt-3";
 
-    btnGetDirections.addEventListener("click", () => {
-      this.getDirections({
-        lat: markerData.pos.lat,
-        lng: markerData.pos.lng
-      });
-      this.activeWindow.close();
-    });
+      // Create get directions button for info window
+      var btnGetDirections = document.createElement("button");
+      btnGetDirections.textContent = "Get Directions";
+      btnGetDirections.setAttribute("class", "btn btn-primary btn-sm mr-3");
 
-    footerElemContainer.appendChild(btnGetDirections);
-
-    // Create visit and order button for info window
-    var visitAndOrder = document.createElement("button");
-    visitAndOrder.textContent = "Visit and Order";
-    visitAndOrder.setAttribute("class", "btn btn-warning btn-sm mr-3");
-
-    // Initialize modal load
-    if (this.objRestaurantOrderHandler) {
-      visitAndOrder.addEventListener("click", () => {
-        this.objRestaurantOrderHandler.initializeOrderModal(
-          markerData.id,
-          this
-        );
+      btnGetDirections.addEventListener("click", () => {
+        this.getDirections({
+          lat: markerData.geometry.location.lat(),
+          lng: markerData.geometry.location.lng()
+        });
         this.activeWindow.close();
       });
-    } else {
-      console.log(
-        "[WARNING] :: this.objRestaurantOrderHandler property must be set"
-      );
-    }
-    footerElemContainer.appendChild(visitAndOrder);
-    infoDialog.append(this.wrapDivInfoContainer(footerElemContainer));
 
-    // Create delete button for info window
-    var btnDeleteRestaurant = document.createElement("button");
-    btnDeleteRestaurant.textContent = "Delete";
-    btnDeleteRestaurant.setAttribute("class", "btn btn-danger btn-sm mr-3");
+      footerElemContainer.appendChild(btnGetDirections);
 
-    btnDeleteRestaurant.addEventListener("click", () => {
-      this.objRestaurantEditHandler.delete(markerData.id, this);
+      infoDialog.append(this.wrapDivInfoContainer(footerElemContainer));
+
+      // set the dialog contents to info window
+      infoWindow.setContent(infoDialog);
     });
-
-    footerElemContainer.appendChild(btnDeleteRestaurant);
-
-    // set the dialog contents to info window
-    infoWindow.setContent(infoDialog);
-
     return infoWindow;
   }
 
@@ -342,49 +351,45 @@ class GoogleMapLib extends MainApp {
    * @param {*} passedCategory
    */
   loadMapData(passedCategory = 0) {
-    let restaurantsEndpoint = this.restEndpoint + "restaurants";
+    var keywords = ["cafe", "japanese", "italian"];
 
-    if (passedCategory > 0) {
-      restaurantsEndpoint = this.restEndpoint + "restaurants/" + passedCategory;
-    }
+    var searchRequest = {
+      location: this.cebuCityLtLng,
+      radius: 10000,
+      keyword: "steak",
+      type: ["restaurant"]
+    };
 
-    axios.get(restaurantsEndpoint).then(response => {
-      // Delete Previous Markers
-      this.clearMarkers(true);
+    this.clearMarkers(true);
+    this.markers.forEach(function(markerObj, markerId) {
+      markerObj.setMap(null);
+    });
 
-      if (this.rectangle) {
-        this.removeRectangle();
-      }
+    this.placesService.nearbySearch(searchRequest, (results, status) => {
+      console.log(results.length);
 
-      // Render Markers
-      response.data.result.forEach((markerData, idx) => {
-        var mapPoint = new google.maps.LatLng(
-          parseFloat(markerData.pos.lat),
-          parseFloat(markerData.pos.lng)
-        );
+      results.forEach((restaurantRes, restaurantIdx) => {
+        // Delete Previous Markers
+
+        if (this.rectangle) {
+          this.removeRectangle();
+        }
 
         var marker = new google.maps.Marker({
           map: this.map,
-          position: mapPoint
+          position: restaurantRes.geometry.location
         });
+
         this.markers.push(marker);
-
-        this.markers.forEach(function(markerObj, markerId) {
-          markerObj.setMap(null);
-        });
-
         this.markers.forEach(markerObj => {
           markerObj.setMap(this.map);
         });
 
-        var infoWindow = this.createInfoWindow(markerData);
+        var infoWindow = this.createInfoWindow(restaurantRes);
 
         marker.addListener("click", () => {
           if (this.activeWindow) {
-            var directionsService = new google.maps.DirectionsService();
-            var directionsDisplay = new google.maps.DirectionsRenderer();
-
-            directionsDisplay.setMap(null);
+            this.directionsDisplay.setMap(null);
             this.activeWindow.close();
           }
           infoWindow.open(this.map, marker);
@@ -399,12 +404,27 @@ class GoogleMapLib extends MainApp {
  * This method is called when initalizing the google map
  */
 function initializeCustomLib() {
-  var objRestaurantOrderHandler = new RestaurantOrderHandler();
-  var objRestaurantEditHandler = new RestaurantEditHandler();
-  var objGoogleMapLib = new GoogleMapLib(
-    objRestaurantOrderHandler,
-    objRestaurantEditHandler
-  );
-  var objPanelControls = new PanelControls(objGoogleMapLib);
-  objPanelControls.initializeDrawRectangleButton();
+  // var restaurantsEndpoint =
+  //   "https://maps.googleapis.com/maps/api/place/textsearch/json?";
+  // restaurantsEndpoint +=
+  //   "query=restaurants&location=10.3790718,123.7062055&radius=10000&key=AIzaSyBkmsHwd8Z0bdIDg1Q41qBS9hE1tl3kNek";
+  // var restRequest = gapi.client.request({
+  //   path: restaurantsEndpoint
+  //   //'params': {'sortOrder': 'LAST_NAME_ASCENDING'}
+  // });
+  // console.log(restRequest);
+  //alert("callback");
+  // gapi.load("auth2", function() {
+  //   // Library loaded.
+  // });
+  // var restRequest = gapi.client.request({
+  //   path: "https://people.googleapis.com/v1/people/me/connections",
+  //   params: { sortOrder: "LAST_NAME_ASCENDING" }
+  // });
+  // alert(restRequest);
+  // var objRestaurantOrderHandler = new RestaurantOrderHandler();
+  // var objRestaurantEditHandler = new RestaurantEditHandler();
+  var objGoogleMapLib = new GoogleMapLib();
+  // var objPanelControls = new PanelControls(objGoogleMapLib);
+  // objPanelControls.initializeDrawRectangleButton();
 }

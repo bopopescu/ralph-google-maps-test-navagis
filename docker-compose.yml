@@ -6,18 +6,18 @@ services:
       - "80:80"
     volumes:
       - ./google_map_app:/usr/share/nginx/html
-  ralph_api_service:
-    build: .
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./GoogleMapTest:/code
-  database:
-    image: mysql:5.6
-    environment:
-      MYSQL_ROOT_PASSWORD: navagis
-      MYSQL_DATABASE: db_google_map_test
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./docker/mysql:/docker-entrypoint-initdb.d
+#  ralph_api_service:
+#    build: .
+#    ports:
+#      - "5000:5000"
+#    volumes:
+#      - ./GoogleMapTest:/code
+#  database:
+#    image: mysql:5.6
+#    environment:
+#      MYSQL_ROOT_PASSWORD: navagis
+#      MYSQL_DATABASE: db_google_map_test
+#    ports:
+#      - "3306:3306"
+#    volumes:
+#      - ./docker/mysql:/docker-entrypoint-initdb.d
