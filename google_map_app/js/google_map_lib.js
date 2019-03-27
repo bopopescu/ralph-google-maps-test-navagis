@@ -42,6 +42,8 @@ class GoogleMapLib extends MainApp {
       zoom: 10
     });
 
+    this.specialty_list = ["pizza", "burger", "beer"];
+
     this.placesService = new google.maps.places.PlacesService(this._mapObj);
     // var searchRequest = {
     //   query: "restaurant",
@@ -245,7 +247,7 @@ class GoogleMapLib extends MainApp {
    * @return {!Object} InfoWindow
    */
   createInfoWindow(markerData, category = "n/a") {
-    console.log(markerData);
+    //console.log(markerData);
 
     var requestDetails = {
       placeId: markerData.place_id,
@@ -260,13 +262,13 @@ class GoogleMapLib extends MainApp {
 
       // create name elem and append
       var mapLabel = document.createElement("h3");
-      mapLabel.textContent = response.name;
+      mapLabel.textContent = markerData.name;
       infoDialog.append(this.wrapDivInfoContainer(mapLabel));
 
       // create address elem and append
       var addressElem = document.createElement("p");
       addressElem.className = "mt-4";
-      addressElem.textContent = response.formatted_address;
+      addressElem.textContent = response ? response.formatted_address : "n/a";
       infoDialog.append(this.wrapDivInfoContainer(addressElem));
 
       // create category name elem and append
@@ -351,49 +353,50 @@ class GoogleMapLib extends MainApp {
    * @param {*} passedCategory
    */
   loadMapData(passedCategory = 0) {
-    var keywords = ["cafe", "japanese", "italian"];
-
-    var searchRequest = {
-      location: this.cebuCityLtLng,
-      radius: 10000,
-      keyword: "steak",
-      type: ["restaurant"]
-    };
-
+    // Delete Previous Markers
     this.clearMarkers(true);
     this.markers.forEach(function(markerObj, markerId) {
       markerObj.setMap(null);
     });
 
-    this.placesService.nearbySearch(searchRequest, (results, status) => {
-      console.log(results.length);
+    if (this.rectangle) {
+      this.removeRectangle();
+    }
 
-      results.forEach((restaurantRes, restaurantIdx) => {
-        // Delete Previous Markers
+    this.specialty_list.forEach((specialty, specialtyIdx) => {
+      var searchRequest = {
+        location: this.cebuCityLtLng,
+        radius: 20000,
+        keyword: specialty,
+        type: ["restaurant"]
+      };
 
-        if (this.rectangle) {
-          this.removeRectangle();
-        }
+      this.placesService.nearbySearch(searchRequest, (results, status) => {
+        console.log(results.length);
 
-        var marker = new google.maps.Marker({
-          map: this.map,
-          position: restaurantRes.geometry.location
-        });
+        results.forEach((restaurantRes, restaurantIdx) => {
+          if (restaurantRes.name) {
+            var marker = new google.maps.Marker({
+              map: this.map,
+              position: restaurantRes.geometry.location
+            });
 
-        this.markers.push(marker);
-        this.markers.forEach(markerObj => {
-          markerObj.setMap(this.map);
-        });
+            this.markers.push(marker);
+            this.markers.forEach(markerObj => {
+              markerObj.setMap(this.map);
+            });
 
-        var infoWindow = this.createInfoWindow(restaurantRes);
+            var infoWindow = this.createInfoWindow(restaurantRes, specialty);
 
-        marker.addListener("click", () => {
-          if (this.activeWindow) {
-            this.directionsDisplay.setMap(null);
-            this.activeWindow.close();
+            marker.addListener("click", () => {
+              if (this.activeWindow) {
+                this.directionsDisplay.setMap(null);
+                this.activeWindow.close();
+              }
+              infoWindow.open(this.map, marker);
+              this.activeWindow = infoWindow;
+            });
           }
-          infoWindow.open(this.map, marker);
-          this.activeWindow = infoWindow;
         });
       });
     });
@@ -404,27 +407,7 @@ class GoogleMapLib extends MainApp {
  * This method is called when initalizing the google map
  */
 function initializeCustomLib() {
-  // var restaurantsEndpoint =
-  //   "https://maps.googleapis.com/maps/api/place/textsearch/json?";
-  // restaurantsEndpoint +=
-  //   "query=restaurants&location=10.3790718,123.7062055&radius=10000&key=AIzaSyBkmsHwd8Z0bdIDg1Q41qBS9hE1tl3kNek";
-  // var restRequest = gapi.client.request({
-  //   path: restaurantsEndpoint
-  //   //'params': {'sortOrder': 'LAST_NAME_ASCENDING'}
-  // });
-  // console.log(restRequest);
-  //alert("callback");
-  // gapi.load("auth2", function() {
-  //   // Library loaded.
-  // });
-  // var restRequest = gapi.client.request({
-  //   path: "https://people.googleapis.com/v1/people/me/connections",
-  //   params: { sortOrder: "LAST_NAME_ASCENDING" }
-  // });
-  // alert(restRequest);
-  // var objRestaurantOrderHandler = new RestaurantOrderHandler();
-  // var objRestaurantEditHandler = new RestaurantEditHandler();
   var objGoogleMapLib = new GoogleMapLib();
-  // var objPanelControls = new PanelControls(objGoogleMapLib);
-  // objPanelControls.initializeDrawRectangleButton();
+  var objPanelControls = new PanelControls(objGoogleMapLib);
+  objPanelControls.initializeDrawRectangleButton();
 }
