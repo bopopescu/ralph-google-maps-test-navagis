@@ -21,15 +21,9 @@
       integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.0/dist/jquery.validate.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.0/dist/additional-methods.min.js"></script>
 
     <script src="js/main_app.js"></script>
     <script src="js/google_map_lib.js"></script>
-    <script src="js/restuarant_order_handler.js"></script>
-    <script src="js/restuarant_edit_handler.js"></script>
     <script src="js/panel_controls.js"></script>
     <!-- END JS scripts -->
 
@@ -51,20 +45,49 @@
       <!-- BEGIN panel container -->
       <div id="control-panel-container">
         <div class="row">
-          <div class="col-md-4">
-            <form>
-              <div class="form-group">
-                <select
-                  class="form-control"
-                  name="frm-sel-food-category"
-                  id="frmSelFoodCategory"
+          <div class="col-md-4 filter-container">
+            <form class="mt-2 ">
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input specialty-filter"
+                  type="checkbox"
+                  id="pizzaFilter"
+                  value="pizza"
+                  checked
+                />
+                <label class="form-check-label" for="pizzaFilter">Pizza</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input specialty-filter"
+                  type="checkbox"
+                  id="burgerFilter"
+                  value="burger"
+                  checked
+                />
+                <label class="form-check-label" for="burgerFilter"
+                  >Burger</label
                 >
-                  <option value="0">-- Select All Category --</option>
-                  <option value="1">Filipino Food</option>
-                  <option value="2">Mediterranean Food</option>
-                  <option value="3">American Food</option>
-                  <option value="4">Japanese Food</option>
-                </select>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input specialty-filter"
+                  type="checkbox"
+                  id="beerFilter"
+                  value="beer"
+                  checked
+                />
+                <label class="form-check-label" for="beerFilter">Beer</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input specialty-filter"
+                  type="checkbox"
+                  id="ramenFilter"
+                  value="ramen"
+                  checked
+                />
+                <label class="form-check-label" for="ramenFilter">Ramen</label>
               </div>
             </form>
           </div>
@@ -92,22 +115,28 @@
             </thead>
             <tbody>
               <tr>
-                <th class="text-nowrap" scope="row">Total Revenue</th>
-                <td id="stat_total_revenue">0.00</td>
+                <th class="text-nowrap" scope="row">
+                  Total Restaurants
+                </th>
+                <td id="stat_total_restaurants">0</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap" scope="row">Total Visits</th>
+                <td id="stat_total_visits">n/a</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap" scope="row">Top Restaurant</th>
+                <td id="stat_top_retaurant">n/a</td>
+              </tr>
+              <tr>
+                <th class="text-nowrap" scope="row">Top Restaurant Rating</th>
+                <td id="stat_top_restaurant_rating">0.00</td>
               </tr>
               <tr>
                 <th class="text-nowrap" scope="row">
-                  Total Number of Restaurants
+                  Visit Average / Restaurant
                 </th>
-                <td id="stat_total_restaurants">0.00</td>
-              </tr>
-              <tr>
-                <th class="text-nowrap" scope="row">Top Seller</th>
-                <td id="stat_top_seller">n/a</td>
-              </tr>
-              <tr>
-                <th class="text-nowrap" scope="row">Top Seller Revenue</th>
-                <td id="stat_top_seller_revenue">0.00</td>
+                <td id="stat_visit_average">0.00</td>
               </tr>
             </tbody>
           </table>
@@ -115,231 +144,6 @@
       </div>
       <!-- END map info container -->
     </div>
-
-    <!-- BEGIN modal for user orders -->
-    <div class="modal fade" id="orderModal" role="dialog">
-      <div class="modal-dialog">
-        <!-- Modal content-->
-        <div class="modal-content">
-          <div class="modal-header">
-            <i class="icon-large icon-map-marker"></i>
-            <h2 id="orderRestaurant">Restaurant</h2>
-            <button type="button" class="close" data-dismiss="modal">
-              &times;
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="alert" id="orderAlert">this is the alert</div>
-            <form id="form-modal-order">
-              <div class="form-group row">
-                <label
-                  for="orderProduct"
-                  class="col-sm-2 col-form-label font-weight-bold"
-                  >Product</label
-                >
-                <div class="col-sm-10">
-                  <input
-                    type="text"
-                    id="orderProduct"
-                    readonly
-                    class="form-control-plaintext"
-                  />
-                </div>
-              </div>
-
-              <div class="form-group row">
-                <label
-                  for="orderCategory"
-                  class="col-sm-2 col-form-label font-weight-bold"
-                  >Category</label
-                >
-                <div class="col-sm-10">
-                  <input
-                    type="text"
-                    id="orderCategory"
-                    readonly
-                    class="form-control-plaintext"
-                  />
-                </div>
-              </div>
-
-              <div class="form-group row">
-                <label
-                  for="orderPrice"
-                  class="col-sm-2 col-form-label font-weight-bold"
-                  >Price</label
-                >
-                <div class="col-sm-10">
-                  <input
-                    type="text"
-                    id="orderPrice"
-                    readonly
-                    class="form-control-plaintext"
-                  />
-                </div>
-              </div>
-
-              <div class="form-group row">
-                <label
-                  for="orderQuantity"
-                  class="col-sm-2 col-form-label font-weight-bold"
-                  >Quantity</label
-                >
-                <div class="col-sm-5">
-                  <input
-                    type="text"
-                    id="orderQuantity"
-                    name="orderQuantity"
-                    class="form-control"
-                  />
-                </div>
-              </div>
-
-              <div class="form-group row">
-                <div class="col-sm-12">
-                  <button
-                    type="submit"
-                    class="btn btn-default btn-success btn-block"
-                    id="orderBtnSubmit"
-                  >
-                    <span class="glyphicon glyphicon-off"></span> Visit and
-                    Place Order
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- END modal for user orders -->
-
-    <!-- BEGIN modal for restaurants -->
-    <div class="modal" id="restaurantModal" role="dialog">
-      <div class="modal-dialog">
-        <!-- Modal content-->
-        <div class="modal-content">
-          <div class="modal-header">
-            <i class="icon-large icon-map-marker"></i>
-            <h2 id="orderRestaurant">Add New Restaurant</h2>
-            <button type="button" class="close" data-dismiss="modal">
-              &times;
-            </button>
-          </div>
-          <div class="modal-body">
-            <div class="alert" id="restaurantAlert">this is the alert</div>
-            <form id="form-modal-restaurant">
-              <div class="form-group row">
-                <label
-                  for="restaurantName"
-                  class="col-sm-3 col-form-label font-weight-bold"
-                  >Name</label
-                >
-                <div class="col-md-9">
-                  <input
-                    type="text"
-                    id="restaurantName"
-                    name="restaurantName"
-                    class="form-control"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div class="form-group row">
-                <label
-                  for="restaurantAddress"
-                  class="col-sm-3 col-form-label font-weight-bold"
-                  >Address</label
-                >
-                <div class="col-md-9">
-                  <input
-                    type="text"
-                    id="restaurantAddress"
-                    name="restaurantAddress"
-                    class="form-control"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div class="form-group row">
-                <label
-                  for="restaurantCategory"
-                  class="col-sm-3 col-form-label font-weight-bold"
-                  >Category</label
-                >
-                <div class="col-md-9">
-                  <select class="form-control" id="restaurantCategory">
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-group row">
-                <label
-                  for="restaurantMenuName"
-                  class="col-sm-3 col-form-label font-weight-bold"
-                  >Main Menu</label
-                >
-                <div class="col-md-9">
-                  <input
-                    type="text"
-                    id="restaurantMenuName"
-                    name="restaurantMenuName"
-                    class="form-control"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div class="form-group row">
-                <label
-                  for="restaurantMenuPrice"
-                  class="col-sm-3 col-form-label font-weight-bold"
-                  >Price</label
-                >
-                <div class="col-md-9">
-                  <input
-                    type="text"
-                    id="restaurantMenuPrice"
-                    name="restaurantMenuPrice"
-                    class="form-control"
-                    required
-                  />
-                </div>
-              </div>
-            </form>
-          </div>
-
-          <div class="modal-footer">
-            <div class="container">
-              <div class="row">
-                <div class="col-md-7">
-                  <button
-                    type="submit"
-                    class="btn btn-default btn-success btn-block"
-                    id="restaurantBtnSubmit"
-                  >
-                    <span class="glyphicon glyphicon-off"></span> Add New
-                    Restaurant
-                  </button>
-                </div>
-                <div class="col-md-5">
-                  <button
-                    class="btn btn-default btn-warning btn-block"
-                    id="restaurantBtnCancel"
-                    data-dismiss="modal"
-                  >
-                    <span class="glyphicon glyphicon-off"></span> Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- END modal for user restaurants -->
 
     <script
       async

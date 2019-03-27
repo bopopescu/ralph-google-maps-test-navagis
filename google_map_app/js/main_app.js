@@ -5,11 +5,7 @@ class MainApp {
   /**
    * Class constructor
    */
-  constructor() {
-    // this.restEndpoint = "http://127.0.0.1:5000/api/";
-    // this.restEndpoint = "http://192.168.99.100:5000/api/";
-    this.restEndpoint = "http://192.168.1.2:5000/api/";
-  }
+  constructor() {}
 
   /**
    * Populate stats table from backend data

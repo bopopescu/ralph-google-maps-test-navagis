@@ -15,17 +15,17 @@ class GoogleMapLib extends MainApp {
     this.objRestaurantOrderHandler = objRestaurantOrderHandler;
     this.objRestaurantEditHandler = objRestaurantEditHandler;
 
+    this.specialty_list = ["pizza", "burger", "beer", "ramen"];
+    this.search_radius = 40000;
+
     // Cebu City hall default location
-    // this.cebuDefaultPos = {
-    //   lat: 10.292876,
-    //   lng: 123.8994493
-    // };
     this.cebuDefaultPos = {
-      lat: 10.318385,
-      lng: 123.787827
+      lat: 10.292876,
+      lng: 123.8994493
     };
 
     this.markers = [];
+    this.activeMarkers = [];
 
     // Cebu reference LatLng object
     this.cebuCityLtLng = new google.maps.LatLng(
@@ -42,46 +42,8 @@ class GoogleMapLib extends MainApp {
       zoom: 10
     });
 
-    this.specialty_list = ["pizza", "burger", "beer"];
-
     this.placesService = new google.maps.places.PlacesService(this._mapObj);
-    // var searchRequest = {
-    //   query: "restaurant",
-    //   fields: ["name"],
-    //   locationBias: {
-    //     radius: 10000,
-    //     center: {
-    //       lat: 10.3790718,
-    //       lng: 123.7062055
-    //     }
-    //   }
-    // };
-
-    /*
-    this.currentPos = this.getCurrentPos();
-    this.activeWindow = null;
-
-    this.filterCategory = 0;
-
-    this.markers = [];
-    this.rectangle = null;
-
-    this.map.addListener("click", event => {
-      $("#restaurantModal").modal();
-
-      var obj_coordinates = {
-        lat: event.latLng.lat(),
-        lng: event.latLng.lng()
-      };
-
-      this.objRestaurantEditHandler.initializeRestaurantEditModal(
-        obj_coordinates,
-        this
-      );
-    });
-    */
-
-    this.loadMapData();
+    //this.loadMapData();
   }
 
   /**
@@ -349,10 +311,25 @@ class GoogleMapLib extends MainApp {
   }
 
   /**
-   * Load all marker data from the backend which will be rendered in the map object
-   * @param {*} passedCategory
+   * Render map items based on passed filter list
+   * @param {*} specialtyFilter
    */
-  loadMapData(passedCategory = 0) {
+  renderMarkersPerSpecialty(specialtyFilter = this.specialty_list) {
+    // clear markers from the map
+    this.clearMarkers();
+    this.activeMarkers = [];
+    this.markers.forEach(markerObj => {
+      if (specialtyFilter.indexOf(markerObj.specialty) >= 0) {
+        markerObj.setMap(this.map);
+        this.activeMarkers.push(markerObj);
+      }
+    });
+  }
+
+  /**
+   * Load all marker data from the backend which will be rendered in the map object
+   */
+  loadMapData(objPanelControls) {
     // Delete Previous Markers
     this.clearMarkers(true);
     this.markers.forEach(function(markerObj, markerId) {
@@ -366,22 +343,26 @@ class GoogleMapLib extends MainApp {
     this.specialty_list.forEach((specialty, specialtyIdx) => {
       var searchRequest = {
         location: this.cebuCityLtLng,
-        radius: 20000,
+        radius: this.search_radius,
         keyword: specialty,
         type: ["restaurant"]
       };
 
       this.placesService.nearbySearch(searchRequest, (results, status) => {
-        console.log(results.length);
-
         results.forEach((restaurantRes, restaurantIdx) => {
           if (restaurantRes.name) {
             var marker = new google.maps.Marker({
               map: this.map,
-              position: restaurantRes.geometry.location
+              position: restaurantRes.geometry.location,
+              name: restaurantRes.name,
+              specialty: specialty,
+              rating: restaurantRes.rating,
+              visits: restaurantRes.user_ratings_total
             });
 
             this.markers.push(marker);
+            this.activeMarkers.push(marker);
+
             this.markers.forEach(markerObj => {
               markerObj.setMap(this.map);
             });
@@ -398,6 +379,9 @@ class GoogleMapLib extends MainApp {
             });
           }
         });
+        if (specialtyIdx == this.specialty_list.length - 1) {
+          objPanelControls.updateStatistics();
+        }
       });
     });
   }
@@ -409,5 +393,5 @@ class GoogleMapLib extends MainApp {
 function initializeCustomLib() {
   var objGoogleMapLib = new GoogleMapLib();
   var objPanelControls = new PanelControls(objGoogleMapLib);
-  objPanelControls.initializeDrawRectangleButton();
+  objGoogleMapLib.loadMapData(objPanelControls);
 }
